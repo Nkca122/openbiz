@@ -1,0 +1,54 @@
+{
+  "step1": {
+    "title": "Aadhaar Verification",
+    "fields": [
+      {
+        "id": "ctl00_ContentPlaceHolder1_txtadharno",
+        "name": "ctl00$ContentPlaceHolder1$txtadharno",
+        "type": "text",
+        "maxlength": "12",
+        "pattern": null
+      }
+    ]
+  },
+  "step2": {
+    "title": "PAN Verification",
+    "fields": [
+      {
+        "id": "ctl00_ContentPlaceHolder1_rbpanyesno_0",
+        "name": "ctl00$ContentPlaceHolder1$rbpanyesno",
+        "type": "radio",
+        "maxlength": null,
+        "pattern": null
+      },
+      {
+        "id": "ctl00_ContentPlaceHolder1_rbpanyesno_1",
+        "name": "ctl00$ContentPlaceHolder1$rbpanyesno",
+        "type": "radio",
+        "maxlength": null,
+        "pattern": null
+      },
+      {
+        "id": "ctl00_ContentPlaceHolder1_txtPan",
+        "name": "ctl00$ContentPlaceHolder1$txtPan",
+        "type": "text",
+        "maxlength": "10",
+        "pattern": null
+      },
+      {
+        "id": "ctl00_ContentPlaceHolder1_txtPanName",
+        "name": "ctl00$ContentPlaceHolder1$txtPanName",
+        "type": "text",
+        "maxlength": "100",
+        "pattern": null
+      },
+      {
+        "id": "ctl00_ContentPlaceHolder1_btnValidatePan",
+        "name": "ctl00$ContentPlaceHolder1$btnValidatePan",
+        "type": "submit",
+        "maxlength": null,
+        "pattern": null
+      }
+    ]
+  }
+}
