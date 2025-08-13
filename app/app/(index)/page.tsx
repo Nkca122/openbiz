@@ -21,6 +21,20 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Step = "aadhar" | "pan";
 
@@ -45,9 +59,51 @@ const otpSchema = z.object({
     .regex(/^\d{6}$/, "Invalid OTP"),
 });
 
+const panSchema = z.object({
+  organisationType: z
+    .enum([
+      "Proprietary",
+      "Hindu Undivided Family",
+      "Partnership",
+      "Co-Operative",
+      "Private Limited Company",
+      "Public Limited Company",
+      "Self Help Group",
+      "Limited Liability Partnership",
+      "Society",
+      "Trust",
+      "Others",
+      "",
+    ])
+    .refine((val) => val !== undefined, {
+      message: "Type of Organisation is required",
+    }),
+
+  panNumber: z
+    .string()
+    .nonempty("PAN is required")
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format"),
+
+  panHolderName: z
+    .string()
+    .nonempty("Name of PAN Holder is required")
+    .max(100, "Max 100 characters"),
+
+  dobOrDoi: z
+    .string()
+    .nonempty("DOB/DOI is required")
+    .regex(
+      /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
+      "Invalid date format (DD/MM/YYYY)"
+    ),
+
+  consent: z.boolean().refine((val) => val === true, "You must give consent"),
+});
+
 export default function Home() {
   const [step, setStep] = useState<Step>("aadhar");
   const [aadharDisabled, setAadharDisabled] = useState<boolean>(false);
+  const [otpDisabled, setOTPDisabled] = useState<boolean>(false);
   const [aadhaarValues, setAadharValues] = useState<{
     ctl00_ContentPlaceHolder1_txtadharno: string;
     ctl00_ContentPlaceHolder1_txtownername: string;
@@ -70,17 +126,68 @@ export default function Home() {
     },
   });
 
+  const panForm = useForm<z.infer<typeof panSchema>>({
+    resolver: zodResolver(panSchema),
+    defaultValues: {
+      organisationType: "",
+      panNumber: "",
+      panHolderName: "",
+      dobOrDoi: "",
+      consent: false,
+    },
+  });
+
   function aadharSubmit(values: z.infer<typeof aadharSchema>) {
     setAadharDisabled(true);
     setAadharValues({ ...values });
   }
 
   function OTPSubmit(values: z.infer<typeof otpSchema>) {
+    setOTPDisabled(true);
     setStep("pan");
+  }
+
+  function panSubmit(values: z.infer<typeof panSchema>) {
+    console.log(values);
   }
 
   return (
     <section className="flex flex-col justify-center items-center mb-8">
+      <div className="w-full">
+        <Breadcrumb className="mb-2">
+          {!aadharDisabled && !otpDisabled && (
+            <BreadcrumbList>
+              <BreadcrumbItem className="hover:cursor-pointer">
+                Aadhar Verification
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </BreadcrumbList>
+          )}
+
+          {aadharDisabled && otpDisabled && (
+            <BreadcrumbList>
+              <BreadcrumbItem
+                className="hover:cursor-pointer"
+                onClick={() => {
+                  setStep("aadhar");
+                }}
+              >
+                Aadhar Verification
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem
+                className="hover:cursor-pointer"
+                onClick={() => {
+                  setStep("pan");
+                }}
+              >
+                Pan Verification
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          )}
+        </Breadcrumb>
+      </div>
+
       <div className="shadow-xl border border-muted w-full rounded-2xl overflow-hidden">
         <Tabs
           defaultValue="aadhar"
@@ -230,7 +337,11 @@ export default function Home() {
                         render={({ field }) => (
                           <FormItem className="relative mb-4">
                             <FormControl>
-                              <InputOTP maxLength={6} {...field}>
+                              <InputOTP
+                                maxLength={6}
+                                {...field}
+                                disabled={otpDisabled}
+                              >
                                 <InputOTPGroup>
                                   <InputOTPSlot index={0} />
                                   <InputOTPSlot index={1} />
@@ -246,7 +357,9 @@ export default function Home() {
                         )}
                       />
 
-                      <Button type="submit">Validate</Button>
+                      <Button type="submit" disabled={otpDisabled}>
+                        Validate
+                      </Button>
                     </form>
                   </Form>
                 </div>
@@ -255,7 +368,134 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="pan">
-            <p className="p-6">Pan</p>
+            <header className="bg-[#28a745] px-8 py-4">
+              <h1 className="text-background">PAN Verification</h1>
+            </header>
+            <div className="p-6">
+              <Form {...panForm}>
+                <form
+                  onSubmit={panForm.handleSubmit(panSubmit)}
+                  className="space-y-6"
+                >
+                  {/* Organisation Type */}
+                  <FormField
+                    control={panForm.control}
+                    name="organisationType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type of Organisation</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Type of Organisation" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Proprietary">
+                              Proprietary
+                            </SelectItem>
+                            <SelectItem value="Hindu Undivided Family">
+                              Hindu Undivided Family
+                            </SelectItem>
+                            <SelectItem value="Partnership">
+                              Partnership
+                            </SelectItem>
+                            <SelectItem value="Co-Operative">
+                              Co-Operative
+                            </SelectItem>
+                            <SelectItem value="Private Limited Company">
+                              Private Limited Company
+                            </SelectItem>
+                            <SelectItem value="Public Limited Company">
+                              Public Limited Company
+                            </SelectItem>
+                            <SelectItem value="Self Help Group">
+                              Self Help Group
+                            </SelectItem>
+                            <SelectItem value="Limited Liability Partnership">
+                              Limited Liability Partnership
+                            </SelectItem>
+                            <SelectItem value="Society">Society</SelectItem>
+                            <SelectItem value="Trust">Trust</SelectItem>
+                            <SelectItem value="Others">Others</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* PAN Number */}
+                  <FormField
+                    control={panForm.control}
+                    name="panNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>PAN Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ABCDE1234F" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* PAN Holder Name */}
+                  <FormField
+                    control={panForm.control}
+                    name="panHolderName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name of PAN Holder</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Full Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* DOB/DOI */}
+                  <FormField
+                    control={panForm.control}
+                    name="dobOrDoi"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>DOB/DOI (DD/MM/YYYY)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="DD/MM/YYYY" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Consent */}
+                  <FormField
+                    control={panForm.control}
+                    name="consent"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        </FormControl>
+                        <FormLabel>I give my consent</FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button type="submit">Submit</Button>
+                </form>
+              </Form>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
