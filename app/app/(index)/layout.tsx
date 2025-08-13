@@ -1,3 +1,5 @@
+import Header from "@/components/header";
+import Footer from "@/components/footer";
 export default function IndexLayout({
   children,
 }: Readonly<{
@@ -5,7 +7,9 @@ export default function IndexLayout({
 }>) {
   return (
     <>
-      <main>{children}</main>
+      <Header />
+      <main className="px-8 lg:px-32 pt-40 min-h-screen">{children}</main>
+      <Footer />
     </>
   );
 }

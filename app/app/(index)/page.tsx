@@ -1,103 +1,258 @@
-import Image from "next/image";
+"use client";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
+
+const aadharSchema = z.object({
+  ctl00_ContentPlaceHolder1_txtadharno: z
+    .string()
+    .nonempty("Required")
+    .regex(/^\d{12}$/, "Invalid Aadhar No"),
+  ctl00_ContentPlaceHolder1_txtownername: z
+    .string()
+    .nonempty("Required")
+    .max(100, "Max 100 Characters"),
+  ctl00_ContentPlaceHolder1_chkDecarationA: z
+    .boolean()
+    .refine((val) => val === true, "You must Agree Declerations."),
+});
+
+const otpSchema = z.object({
+  otp: z
+    .string()
+    .nonempty("Required")
+    .regex(/^\d{6}$/, "Invalid OTP"),
+});
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [step, setStep] = useState<"aadhar" | "pan">("aadhar");
+  const [aadharDisabled, setAadharDisabled] = useState<boolean>(false);
+  const [aadhaarValues, setAadharValues] = useState<{
+    ctl00_ContentPlaceHolder1_txtadharno: string;
+    ctl00_ContentPlaceHolder1_txtownername: string;
+    ctl00_ContentPlaceHolder1_chkDecarationA: boolean;
+  } | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const aadharForm = useForm<z.infer<typeof aadharSchema>>({
+    resolver: zodResolver(aadharSchema),
+    defaultValues: {
+      ctl00_ContentPlaceHolder1_txtadharno: "",
+      ctl00_ContentPlaceHolder1_txtownername: "",
+      ctl00_ContentPlaceHolder1_chkDecarationA: false,
+    },
+  });
+
+  const otpForm = useForm<z.infer<typeof otpSchema>>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: "",
+    },
+  });
+
+  function aadharSubmit(values: z.infer<typeof aadharSchema>) {
+    setAadharDisabled(true);
+    setAadharValues({ ...values });
+  }
+
+  function OTPSubmit(values: z.infer<typeof otpSchema>) {
+    setStep("pan")
+  }
+
+  return (
+    <section className="flex flex-col justify-center items-center mb-8">
+      <div className="shadow-xl border border-muted w-full rounded-2xl overflow-hidden">
+        <Tabs defaultValue="aadhar" value={step} onValueChange={(e)=>{
+          setStep(e)
+        }}>
+          <TabsContent value="aadhar">
+            <header className="bg-[#007bff] px-8 py-4">
+              <h1 className="text-background">Aadhar Verification With OTP</h1>
+            </header>
+            <div className="p-6">
+              <Form {...aadharForm}>
+                <form
+                  onSubmit={aadharForm.handleSubmit(aadharSubmit)}
+                  className="space-y-6 mb-8"
+                >
+                  {/* Aadhaar & Name fields */}
+                  <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mb-8">
+                    <FormField
+                      control={aadharForm.control}
+                      name="ctl00_ContentPlaceHolder1_txtadharno"
+                      render={({ field }) => (
+                        <FormItem className="w-full relative">
+                          <FormLabel>
+                            <b>1. Aadhaar Number/ आधार संख्या</b>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Your Aadhar No"
+                              autoComplete="off"
+                              disabled={aadharDisabled}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={aadharForm.control}
+                      name="ctl00_ContentPlaceHolder1_txtownername"
+                      render={({ field }) => (
+                        <FormItem className="w-full relative">
+                          <FormLabel>
+                            <b>2. Name of Entrepreneur / उद्यमी का नाम</b>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Name as per Aadhar"
+                              autoComplete="off"
+                              disabled={aadharDisabled}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Declaration text */}
+                  <div className="px-4 lg:px-16">
+                    <ul className="list-disc flex flex-col gap-4">
+                      <li className="text-sm leading-none">
+                        Aadhaar number shall be required for Udyam Registration.
+                      </li>
+                      <li className="text-sm leading-none">
+                        The Aadhaar number shall be of the proprietor in the
+                        case of a proprietorship firm, of the managing partner
+                        in the case of a partnership firm and of a karta in the
+                        case of a Hindu Undivided Family (HUF).
+                      </li>
+                      <li className="text-sm leading-none">
+                        In case of a Company or a Limited Liability Partnership
+                        or a Cooperative Society or a Society or a Trust, the
+                        organisation or its authorised signatory shall provide
+                        its GSTIN and PAN along with its Aadhaar number.
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Checkbox field */}
+                  <FormField
+                    control={aadharForm.control}
+                    name="ctl00_ContentPlaceHolder1_chkDecarationA"
+                    render={({ field }) => (
+                      <FormItem className="relative">
+                        <FormControl>
+                          <div className="text-sm flex flex-col lg:flex-row gap-2">
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              disabled={aadharDisabled}
+                            />
+                            <p>
+                              I, the holder of the above Aadhaar, hereby give my
+                              consent to Ministry of MSME, Government of India,
+                              for using my Aadhaar number as alloted by UIDAI
+                              for Udyam Registration. NIC / Ministry of MSME,
+                              Government of India, have informed me that my
+                              aadhaar data will not be stored/shared. / मैं,
+                              आधार धारक, इस प्रकार उद्यम पंजीकरण के लिए
+                              यूआईडीएआई के साथ अपने आधार संख्या का उपयोग करने के
+                              लिए सू0ल0म0उ0 मंत्रालय, भारत सरकार को अपनी सहमति
+                              देता हूं। एनआईसी / सू0ल0म0उ0 मंत्रालय, भारत सरकार
+                              ने मुझे सूचित किया है कि मेरा आधार डेटा संग्रहीत /
+                              साझा नहीं किया जाएगा।
+                            </p>
+                          </div>
+                        </FormControl>
+                        <FormMessage className="absolute top-[100%]" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Submit */}
+                  {!aadharDisabled && (
+                    <Button
+                      type="submit"
+                      disabled={aadharDisabled}
+                      className="mt-4"
+                    >
+                      Validate & Generate OTP
+                    </Button>
+                  )}
+                </form>
+              </Form>
+
+              {aadharDisabled && (
+                <div className="flex flex-col justify-center items-start gap-2">
+                  <Form {...otpForm}>
+                    <form
+                      onSubmit={otpForm.handleSubmit(OTPSubmit)}
+                      className="flex flex-col justify-center items-start gap-2"
+                    >
+                      <Label className="font-bold flex items-center gap-1">
+                        <span className="text-red-500">*</span>
+                        Enter One Time Password (OTP) Code
+                      </Label>
+
+                      <FormField
+                        control={otpForm.control}
+                        name="otp"
+                        render={({ field }) => (
+                          <FormItem className="relative mb-4">
+                            <FormControl>
+                              <InputOTP maxLength={6} {...field}>
+                                <InputOTPGroup>
+                                  <InputOTPSlot index={0} />
+                                  <InputOTPSlot index={1} />
+                                  <InputOTPSlot index={2} />
+                                  <InputOTPSlot index={3} />
+                                  <InputOTPSlot index={4} />
+                                  <InputOTPSlot index={5} />
+                                </InputOTPGroup>
+                              </InputOTP>
+                            </FormControl>
+                            <FormMessage className="absolute top-[100%]" />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Button type="submit">Validate</Button>
+                    </form>
+                  </Form>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="pan">
+            <p className="p-6">Pan</p>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </section>
   );
 }
