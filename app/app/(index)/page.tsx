@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 
+type Step = "aadhar" | "pan";
+
 const aadharSchema = z.object({
   ctl00_ContentPlaceHolder1_txtadharno: z
     .string()
@@ -44,7 +46,7 @@ const otpSchema = z.object({
 });
 
 export default function Home() {
-  const [step, setStep] = useState<"aadhar" | "pan">("aadhar");
+  const [step, setStep] = useState<Step>("aadhar");
   const [aadharDisabled, setAadharDisabled] = useState<boolean>(false);
   const [aadhaarValues, setAadharValues] = useState<{
     ctl00_ContentPlaceHolder1_txtadharno: string;
@@ -74,15 +76,19 @@ export default function Home() {
   }
 
   function OTPSubmit(values: z.infer<typeof otpSchema>) {
-    setStep("pan")
+    setStep("pan");
   }
 
   return (
     <section className="flex flex-col justify-center items-center mb-8">
       <div className="shadow-xl border border-muted w-full rounded-2xl overflow-hidden">
-        <Tabs defaultValue="aadhar" value={step} onValueChange={(e)=>{
-          setStep(e)
-        }}>
+        <Tabs
+          defaultValue="aadhar"
+          value={step}
+          onValueChange={(value: string) => {
+            setStep(value as Step);
+          }}
+        >
           <TabsContent value="aadhar">
             <header className="bg-[#007bff] px-8 py-4">
               <h1 className="text-background">Aadhar Verification With OTP</h1>
