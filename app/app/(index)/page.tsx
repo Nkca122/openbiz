@@ -60,7 +60,7 @@ const otpSchema = z.object({
 });
 
 const panSchema = z.object({
-  organisationType: z
+  ctl00_ContentPlaceHolder1_ddlTypeofOrg: z
     .enum([
       "Proprietary",
       "Hindu Undivided Family",
@@ -75,28 +75,27 @@ const panSchema = z.object({
       "Others",
       "",
     ])
-    .refine((val) => val !== undefined, {
+    .refine((val) => val !== undefined && val !== "", {
       message: "Type of Organisation is required",
     }),
 
-  panNumber: z
+  ctl00_ContentPlaceHolder1_txtPan: z
     .string()
     .nonempty("PAN is required")
     .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format"),
 
-  panHolderName: z
+  ctl00_ContentPlaceHolder1_txtPanName: z
     .string()
     .nonempty("Name of PAN Holder is required")
     .max(100, "Max 100 characters"),
 
-  dobOrDoi: z
+  ctl00_ContentPlaceHolder1_rbdDOB_0: z
     .string()
     .nonempty("DOB/DOI is required")
     .regex(
-      /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/,
-      "Invalid date format (DD/MM/YYYY)"
+      /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
+      "Invalid date format (YYYY-MM-DD)"
     ),
-
   consent: z.boolean().refine((val) => val === true, "You must give consent"),
 });
 
@@ -108,6 +107,13 @@ export default function Home() {
     ctl00_ContentPlaceHolder1_txtadharno: string;
     ctl00_ContentPlaceHolder1_txtownername: string;
     ctl00_ContentPlaceHolder1_chkDecarationA: boolean;
+  } | null>(null);
+
+  const [panValues, setPANValues] = useState<{
+    ctl00_ContentPlaceHolder1_ddlTypeofOrg: string;
+    ctl00_ContentPlaceHolder1_txtPan: string;
+    ctl00_ContentPlaceHolder1_txtPanName: string;
+    ctl00_ContentPlaceHolder1_rbdDOB_0: string;
   } | null>(null);
 
   const aadharForm = useForm<z.infer<typeof aadharSchema>>({
@@ -129,10 +135,10 @@ export default function Home() {
   const panForm = useForm<z.infer<typeof panSchema>>({
     resolver: zodResolver(panSchema),
     defaultValues: {
-      organisationType: "",
-      panNumber: "",
-      panHolderName: "",
-      dobOrDoi: "",
+      ctl00_ContentPlaceHolder1_ddlTypeofOrg: "",
+      ctl00_ContentPlaceHolder1_txtPan: "",
+      ctl00_ContentPlaceHolder1_txtPanName: "",
+      ctl00_ContentPlaceHolder1_rbdDOB_0: "",
       consent: false,
     },
   });
@@ -148,7 +154,7 @@ export default function Home() {
   }
 
   function panSubmit(values: z.infer<typeof panSchema>) {
-    console.log(values);
+    setPANValues({...values})
   }
 
   return (
@@ -366,7 +372,6 @@ export default function Home() {
               )}
             </div>
           </TabsContent>
-
           <TabsContent value="pan">
             <header className="bg-[#28a745] px-8 py-4">
               <h1 className="text-background">PAN Verification</h1>
@@ -377,122 +382,140 @@ export default function Home() {
                   onSubmit={panForm.handleSubmit(panSubmit)}
                   className="space-y-6"
                 >
-                  {/* Organisation Type */}
-                  <FormField
-                    control={panForm.control}
-                    name="organisationType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Type of Organisation</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-8 mb-8">
+                    <FormField
+                      control={panForm.control}
+                      name="ctl00_ContentPlaceHolder1_ddlTypeofOrg"
+                      render={({ field }) => (
+                        <FormItem className="w-full relative">
+                          <FormLabel>
+                            <b>3. Type of Organisation / संगठन के प्रकार</b>
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Type of Organisation / संगठन के प्रकार" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Proprietary">
+                                Proprietary
+                              </SelectItem>
+                              <SelectItem value="Hindu Undivided Family">
+                                Hindu Undivided Family
+                              </SelectItem>
+                              <SelectItem value="Partnership">
+                                Partnership
+                              </SelectItem>
+                              <SelectItem value="Co-Operative">
+                                Co-Operative
+                              </SelectItem>
+                              <SelectItem value="Private Limited Company">
+                                Private Limited Company
+                              </SelectItem>
+                              <SelectItem value="Public Limited Company">
+                                Public Limited Company
+                              </SelectItem>
+                              <SelectItem value="Self Help Group">
+                                Self Help Group
+                              </SelectItem>
+                              <SelectItem value="Limited Liability Partnership">
+                                Limited Liability Partnership
+                              </SelectItem>
+                              <SelectItem value="Society">Society</SelectItem>
+                              <SelectItem value="Trust">Trust</SelectItem>
+                              <SelectItem value="Others">Others</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={panForm.control}
+                      name="ctl00_ContentPlaceHolder1_txtPan"
+                      render={({ field }) => (
+                        <FormItem className="relative">
+                          <FormLabel>
+                            <b>4.1 PAN / पैन</b>
+                          </FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Type of Organisation" />
-                            </SelectTrigger>
+                            <Input placeholder="ENTER PAN NUMBER" autoComplete="off" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Proprietary">
-                              Proprietary
-                            </SelectItem>
-                            <SelectItem value="Hindu Undivided Family">
-                              Hindu Undivided Family
-                            </SelectItem>
-                            <SelectItem value="Partnership">
-                              Partnership
-                            </SelectItem>
-                            <SelectItem value="Co-Operative">
-                              Co-Operative
-                            </SelectItem>
-                            <SelectItem value="Private Limited Company">
-                              Private Limited Company
-                            </SelectItem>
-                            <SelectItem value="Public Limited Company">
-                              Public Limited Company
-                            </SelectItem>
-                            <SelectItem value="Self Help Group">
-                              Self Help Group
-                            </SelectItem>
-                            <SelectItem value="Limited Liability Partnership">
-                              Limited Liability Partnership
-                            </SelectItem>
-                            <SelectItem value="Society">Society</SelectItem>
-                            <SelectItem value="Trust">Trust</SelectItem>
-                            <SelectItem value="Others">Others</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
 
-                  {/* PAN Number */}
-                  <FormField
-                    control={panForm.control}
-                    name="panNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>PAN Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ABCDE1234F" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={panForm.control}
+                      name="ctl00_ContentPlaceHolder1_txtPanName"
+                      render={({ field }) => (
+                        <FormItem className="relative">
+                          <FormLabel>
+                            <b>4.1.1 Name of PAN Holder / पैन धारक का नाम</b>
+                          </FormLabel>
+                          <FormControl>
+                            <Input placeholder="Name as per PAN" autoComplete="off" {...field} />
+                          </FormControl>
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
 
-                  {/* PAN Holder Name */}
-                  <FormField
-                    control={panForm.control}
-                    name="panHolderName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name of PAN Holder</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Full Name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={panForm.control}
+                      name="ctl00_ContentPlaceHolder1_rbdDOB_0"
+                      render={({ field }) => (
+                        <FormItem className="relative">
+                          <FormLabel>
+                            <b>
+                              4.1.2 DOB or DOI as per PAN / पैन के अनुसार जन्म
+                              तिथि या निगमन तिथि
+                            </b>
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} autoComplete="off" type="date" />
+                          </FormControl>
+                          <FormMessage className="absolute top-[100%]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  {/* DOB/DOI */}
-                  <FormField
-                    control={panForm.control}
-                    name="dobOrDoi"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>DOB/DOI (DD/MM/YYYY)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="DD/MM/YYYY" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Consent */}
                   <FormField
                     control={panForm.control}
                     name="consent"
                     render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
+                      <FormItem className="relative">
                         <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                          />
+                          <div className="text-sm flex flex-col lg:flex-row gap-2">
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                            <p>
+                              I, the holder of the above PAN, hereby give my
+                              consent to Ministry of MSME, Government of India,
+                              for using my data/information available in the
+                              Income Tax Returns filed by me, and also the same
+                              available in the GST Returns and also from other
+                              Government organizations, for MSME classification
+                              and other official purposes, in pursuance of the
+                              MSMED Act, 2006.
+                            </p>
+                          </div>
                         </FormControl>
-                        <FormLabel>I give my consent</FormLabel>
-                        <FormMessage />
+                        <FormMessage className="absolute top-[100%]" />
                       </FormItem>
                     )}
                   />
 
-                  <Button type="submit">Submit</Button>
+                  <Button type="submit">Validate PAN</Button>
                 </form>
               </Form>
             </div>
