@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Data {
+  id                                       Int      @id @default(autoincrement())
+
+  ctl00_ContentPlaceHolder1_txtadharno     String   @db.VarChar(12)
+  ctl00_ContentPlaceHolder1_txtownername   String   @db.VarChar(100)
+  ctl00_ContentPlaceHolder1_chkDecarationA Boolean
+
+  ctl00_ContentPlaceHolder1_ddlTypeofOrg   String   @db.VarChar(50)
+  ctl00_ContentPlaceHolder1_txtPan         String   @db.VarChar(10)
+  ctl00_ContentPlaceHolder1_txtPanName     String   @db.VarChar(100)
+  ctl00_ContentPlaceHolder1_rbdDOB_0       String
+
+  consent                                  Boolean
+
+  createdAt                                DateTime @default(now())
+  updatedAt                                DateTime @updatedAt
+}

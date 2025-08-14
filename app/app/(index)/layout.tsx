@@ -8,7 +8,7 @@ export default function IndexLayout({
   return (
     <>
       <Header />
-      <main className="px-8 lg:px-32 pt-40 min-h-screen">{children}</main>
+      <main className="px-8 lg:px-32 pt-40 min-h-screen mb-16">{children}</main>
       <Footer />
     </>
   );

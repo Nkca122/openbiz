@@ -36,6 +36,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { X } from "lucide-react";
+
 type Step = "aadhar" | "pan";
 
 const aadharSchema = z.object({
@@ -96,7 +108,9 @@ const panSchema = z.object({
       /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
       "Invalid date format (YYYY-MM-DD)"
     ),
-  consent: z.boolean().refine((val) => val === true, "You must Agree Declerations."),
+  consent: z
+    .boolean()
+    .refine((val) => val === true, "You must Agree Declerations."),
 });
 
 export default function Home() {
@@ -115,6 +129,9 @@ export default function Home() {
     ctl00_ContentPlaceHolder1_txtPanName: string;
     ctl00_ContentPlaceHolder1_rbdDOB_0: string;
   } | null>(null);
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [err, setErr] = useState<any>(null);
 
   const aadharForm = useForm<z.infer<typeof aadharSchema>>({
     resolver: zodResolver(aadharSchema),
@@ -143,6 +160,8 @@ export default function Home() {
     },
   });
 
+  const router = useRouter();
+
   function aadharSubmit(values: z.infer<typeof aadharSchema>) {
     setAadharDisabled(true);
     setAadharValues({ ...values });
@@ -154,11 +173,61 @@ export default function Home() {
   }
 
   function panSubmit(values: z.infer<typeof panSchema>) {
-    setPANValues({...values})
+    setPANValues({ ...values });
+    setLoading(true);
+    if (process.env.NEXT_PUBLIC_BACKEND_URL) {
+      axios
+        .post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/submit`, {
+          ...aadhaarValues,
+          ...values,
+        })
+        .then((response) => {
+          if (response.status == 200) router.push("/submitted");
+        })
+        .catch((err) => {
+          setErr(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
   }
 
   return (
-    <section className="flex flex-col justify-center items-center mb-8">
+    <section className="flex flex-col justify-center items-center">
+      <AlertDialog open={!!err} onOpenChange={(open) => !open && setErr(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="w-full flex justify-between px-2 items-center">
+                <h1 className="text-2xl font-extrabold">
+                  Error Code{" "}
+                  <span className="text-blue-500">{err?.status || 500}</span>
+                </h1>
+              </div>
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+
+          <AlertDialogDescription className="px-2">
+            <div className="w-full">
+              <p className="text-sm font-bold">
+                {err?.response?.data?.msg ||
+                  "Something Went Wrong. Please Try again later"}
+              </p>
+            </div>
+          </AlertDialogDescription>
+
+          <AlertDialogFooter>
+            <Button
+              onClick={() => {
+                setErr(null);
+              }}
+            >
+              <X />
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="w-full">
         <Breadcrumb className="mb-2">
           {!aadharDisabled && !otpDisabled && (
@@ -444,7 +513,11 @@ export default function Home() {
                             <b>4.1 PAN / पैन</b>
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="ENTER PAN NUMBER" autoComplete="off" {...field} />
+                            <Input
+                              placeholder="ENTER PAN NUMBER"
+                              autoComplete="off"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage className="absolute top-[100%]" />
                         </FormItem>
@@ -460,7 +533,11 @@ export default function Home() {
                             <b>4.1.1 Name of PAN Holder / पैन धारक का नाम</b>
                           </FormLabel>
                           <FormControl>
-                            <Input placeholder="Name as per PAN" autoComplete="off" {...field} />
+                            <Input
+                              placeholder="Name as per PAN"
+                              autoComplete="off"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage className="absolute top-[100%]" />
                         </FormItem>
@@ -515,7 +592,9 @@ export default function Home() {
                     )}
                   />
 
-                  <Button type="submit">Validate PAN</Button>
+                  <Button type="submit" disabled={loading}>
+                    Validate PAN
+                  </Button>
                 </form>
               </Form>
             </div>
