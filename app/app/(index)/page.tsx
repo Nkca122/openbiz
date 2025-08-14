@@ -76,13 +76,13 @@ const panSchema = z.object({
       "",
     ])
     .refine((val) => val !== undefined && val !== "", {
-      message: "Type of Organisation is required",
+      message: "Required",
     }),
 
   ctl00_ContentPlaceHolder1_txtPan: z
     .string()
-    .nonempty("PAN is required")
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format"),
+    .nonempty("Required")
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN Card"),
 
   ctl00_ContentPlaceHolder1_txtPanName: z
     .string()
@@ -91,12 +91,12 @@ const panSchema = z.object({
 
   ctl00_ContentPlaceHolder1_rbdDOB_0: z
     .string()
-    .nonempty("DOB/DOI is required")
+    .nonempty("Required")
     .regex(
       /^(\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/,
       "Invalid date format (YYYY-MM-DD)"
     ),
-  consent: z.boolean().refine((val) => val === true, "You must give consent"),
+  consent: z.boolean().refine((val) => val === true, "You must Agree Declerations."),
 });
 
 export default function Home() {
