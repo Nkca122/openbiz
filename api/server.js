@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const wrapAsync = require("./utils/wrapAsync");
 const ExpressError = require("./utils/expressError");
-const { PrismaClient } = require("./generated/prisma");
+const { PrismaClient } = require("@prisma/client");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -16,7 +16,7 @@ app.use(express.json());
 // CORS config (allow frontend at localhost:3000)
 app.use(
   cors({
-    origin: process.env.ENV === "development" ? "*" : process.env.CLIENT,
+    origin: process.env.ENV == "development" ? "*" : process.env.CLIENT,
   })
 );
 
