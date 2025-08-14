@@ -11,7 +11,7 @@ export default function Header() {
           <div className="flex flex-col lg:flex-row justify-center items-start lg:items-center gap-2">
             <Link href={"/"}>
               <Image
-                src={"/assets/logo.webp"}
+                src={"/assets/Logo.webp"}
                 width={158}
                 height={46}
                 alt="Logo"
